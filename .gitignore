@@ -1,0 +1,8 @@
+# exclude VS project files
+*.vcxproj
+*.filters
+*.user
+/Debug
+
+# exclude Thumbs.db
+/images/Thumbs.db
