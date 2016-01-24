@@ -1,14 +1,20 @@
 #include "opencv2/opencv.hpp"
+#include "anisotropic-diffusion.h"
 
 using namespace std;
+using namespace cv;
 
-static void Help() {
+static void help() {
   cout << "raindrop-recognition\n\n"
        << "Waiting for update...\n"
        << "The code is based on OpenCV3.10.\n";
 }
 
 int main(int argc, char** argv) {
-  Help();
+  help();
+  Mat img = imread("images/20090423-194552-01-P.jpg");
+  cvtColor(img, img, CV_BGR2GRAY);
+  Mat dst;
+  anisotropicDiffusion(img, dst, 16, 64);
   return 0;
 }
