@@ -16,5 +16,8 @@ int main(int argc, char** argv) {
   cvtColor(img, img, CV_BGR2GRAY);
   Mat dst;
   anisotropicDiffusion(img, dst, 16, 64);
+  namedWindow("fu");
+  imshow("fu", dst);
+  waitKey(0);
   return 0;
 }
