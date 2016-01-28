@@ -4,15 +4,18 @@ using namespace cv;
 
 void anisotropicDiffusion(cv::InputArray _src, cv::OutputArray _dst,
                           int k, int iterate) {
+  std::cout << "Anisotropic diffusion...\n";
   Mat src = _src.getMat();
   CV_Assert(src.depth() == CV_32F || src.depth() == CV_64F);
   _dst.create(src.size(), src.type());
   Mat dst = _dst.getMat();
   dst = src.clone();
 
-  for (size_t i = 0; i < iterate; ++i) {
+  double lambda = .025;
+  for (int i = 0; i < iterate; ++i) {
     Mat fluxN, fluxS, fluxE, fluxW;
     calcfluxAll(dst, fluxN, fluxS, fluxE, fluxW, k);
+    dst += lambda * (fluxN + fluxS + fluxE + fluxW);
   }
   dst.copyTo(_dst);
 }
