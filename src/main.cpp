@@ -1,6 +1,7 @@
 #include "opencv2/opencv.hpp"
-#include "anisotropic-diffusion.h"
+#include "anisotropic.h"
 #include "sobel.h"
+#include "morphology.h"
 
 using namespace std;
 using namespace cv;
@@ -30,6 +31,9 @@ int main(int argc, char** argv) {
   // binarization
   double thresh = 20, maxval = 255;
   threshold(img, img, thresh, maxval, THRESH_BINARY);
+
+  // morphology operation
+  morphologyOperation(img, img);
 
   img.convertTo(img, CV_8UC1);
   namedWindow("dst");

@@ -1,4 +1,4 @@
-#include "anisotropic-diffusion.h"
+#include "anisotropic.h"
 
 using namespace cv;
 
