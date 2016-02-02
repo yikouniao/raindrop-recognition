@@ -15,5 +15,7 @@ void sobel(const cv::Mat& src, cv::Mat& dst) {
   Mat abs_grad_x, abs_grad_y;
   convertScaleAbs(grad_x, abs_grad_x);
   convertScaleAbs(grad_y, abs_grad_y);
+  // Approximate the gradient by adding both directional gradients.
+  // This is not an exact calculation, but it is good for our purposes.
   addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, dst);
 }
