@@ -1,5 +1,6 @@
 #include "opencv2/opencv.hpp"
 #include "anisotropic-diffusion.h"
+#include "sobel.h"
 
 using namespace std;
 using namespace cv;

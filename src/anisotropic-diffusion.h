@@ -6,8 +6,7 @@ void anisotropicDiffusion(cv::InputArray _src, cv::OutputArray _dst,
 static void calcfluxAll(cv::InputArray _src, cv::OutputArray _fluxN,
                         cv::OutputArray _fluxS, cv::OutputArray _fluxE,
                         cv::OutputArray _fluxW, int k);
-static void calcfluxN(cv::InputArray _src, cv::OutputArray _fluxN, int k);
-static void calcfluxS(cv::InputArray _src, cv::OutputArray _fluxS, int k);
-static void calcfluxE(cv::InputArray _src, cv::OutputArray _fluxE, int k);
-static void calcfluxW(cv::InputArray _src, cv::OutputArray _fluxW, int k);
-static void calcflux(cv::InputArray _delta, cv::OutputArray _flux, int k);
+static void calcflux(cv::InputArray _src, cv::OutputArray _flux,
+                     int k, char dir);
+static void calcfluxBydelta(cv::InputArray _delta, cv::OutputArray _flux,
+                            int k);
