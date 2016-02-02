@@ -18,12 +18,12 @@ int main(int argc, char** argv) {
   namedWindow("Original image");
   imshow("Original image", img);
   img.convertTo(img, CV_32FC1);
-  Mat dst;
   int k = 16, iterate = 64;
-  anisotropicDiffusion(img, dst, k, iterate);
-  dst.convertTo(dst, CV_8UC1);
+  anisotropicDiffusion(img, img, k, iterate);
+  sobel(img, img);
+  img.convertTo(img, CV_8UC1);
   namedWindow("dst");
-  imshow("dst", dst);
+  imshow("dst", img);
   waitKey(0);
   return 0;
 }
