@@ -2,11 +2,8 @@
 
 using namespace cv;
 
-void morphologyOperation(const cv::Mat& src, cv::Mat& dst) {
-  open(src, dst);
-}
-
-static void open(const cv::Mat& src, cv::Mat& dst) {
+void open(const cv::Mat& src, cv::Mat& dst) {
+  // Use the matrix to implement open operation
   unsigned char m[7][7] = {{0, 0, 0, 1, 0, 0, 0},
                            {0, 1, 1, 1, 1, 1, 0},
                            {0, 1, 1, 1, 1, 1, 0},

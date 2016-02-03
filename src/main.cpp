@@ -2,6 +2,7 @@
 #include "anisotropic.h"
 #include "sobel.h"
 #include "morphology.h"
+#include "connected-component.h"
 
 using namespace std;
 using namespace cv;
@@ -11,7 +12,7 @@ static void help() {
        << "Waiting for update...\n"
        << "The code is based on OpenCV3.10.\n";
 }
-
+RNG rng(12345);
 int main(int argc, char** argv) {
   help();
   Mat img = imread("images/20090423-194552-01-P.jpg");
@@ -28,14 +29,14 @@ int main(int argc, char** argv) {
   // Sobel Derivatives
   sobel(img, img);
 
-  // binarization
-  double thresh = 20, maxval = 255;
-  threshold(img, img, thresh, maxval, THRESH_BINARY);
-
-  // morphology operation
-  morphologyOperation(img, img);
-
+  // Binarization
+  double thresh = 20, max_val = 255;
+  threshold(img, img, thresh, max_val, THRESH_BINARY);
   img.convertTo(img, CV_8UC1);
+
+  // Seperate interference from raindrops and weaken it
+  open(img, img);
+
   namedWindow("dst");
   imshow("dst", img);
   waitKey(0);
