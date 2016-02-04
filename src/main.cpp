@@ -24,14 +24,14 @@ int main(int argc, char** argv) {
   img.convertTo(img, CV_32FC1);
 
   // Anisotropic diffusion
-  const int k = 8, iterate = 1;
+  const int k = 16, iterate = 2;
   anisotropicDiffusion(img, img, k, iterate);
 
   // Sobel Derivatives
   sobel(img, img);
 
   // Binarization
-  const double thresh = 15, max_val = 255;
+  const double thresh = 12, max_val = 255;
   threshold(img, img, thresh, max_val, THRESH_BINARY);
   img.convertTo(img, CV_8UC1);
 
@@ -51,6 +51,18 @@ int main(int argc, char** argv) {
 
   // Make the edges of raindrops more continuous
   close(img, img);
+
+  // Fill the holes inside the raindrops
+  Mat img_temp = img.clone();
+  vector<vector<Point>> contours;
+  findContours(img_temp, contours, noArray(),
+               CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
+  for (size_t i = 0; i < contours.size(); i++) {
+    drawContours(img, contours, i, Scalar(255), CV_FILLED, 8, noArray(), 0);
+  }
+
+  // Remove some interference from raindrops
+  removeSmallConnectedComponents(img, img, minArea);
 
   namedWindow("dst");
   imshow("dst", img);
