@@ -16,11 +16,13 @@ static void help() {
 
 int main(int argc, char** argv) {
   help();
-  Mat img = imread("images/20090423-194552-01-P.jpg");
-  cvtColor(img, img, CV_BGR2GRAY);
-  img = img(Rect(0, 8, 690, img.rows - 8)); // Tailor invalid area
+  Mat img_original = imread("images/20090423-194552-01-P.jpg");
+  // Tailor invalid area
+  img_original = img_original(Rect(0, 8, 690, img_original.rows - 8));
   namedWindow("Original image");
-  imshow("Original image", img);
+  imshow("Original image", img_original);
+  Mat img;
+  cvtColor(img_original, img, CV_BGR2GRAY);
   img.convertTo(img, CV_32FC1);
 
   // Anisotropic diffusion
@@ -48,6 +50,9 @@ int main(int argc, char** argv) {
   // Remove the long straight edges interference of the image
   const double ratio = 0.75;
   clearImgEdgeInterference(img, img, ratio);
+
+  // Clear the numbers and characters on the top left corner
+  img(Rect(20, 12, 416, 32)) = Mat::zeros(32, 416, CV_8UC1);
 
   // Make the edges of raindrops more continuous
   close(img, img);
