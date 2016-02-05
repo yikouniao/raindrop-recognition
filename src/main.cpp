@@ -12,7 +12,9 @@ using namespace cv;
 
 static void help() {
   cout << "raindrop-recognition\n\n"
-       << "Waiting for update...\n"
+       << "Read images from 'images/' "
+       << "and calculate the quantity of raindrops.\n"
+       << "The result is saved in 'results/'"
        << "The code is based on OpenCV3.10.\n";
 }
 
@@ -23,9 +25,10 @@ int main(int argc, char** argv) {
   glob(images_dir, filenames); // Read a sequence of files within a folder
   for (size_t i = 0; i < filenames.size(); ++i) {
     Mat img_original = imread(filenames[i]);
-    cout << filenames[i];
+
     // Tailor invalid area
     img_original = img_original(Rect(0, 8, 690, img_original.rows - 8));
+
     namedWindow("Original image");
     imshow("Original image", img_original);
     Mat img_grey;
@@ -33,7 +36,7 @@ int main(int argc, char** argv) {
     img_grey.convertTo(img_grey, CV_32FC1);
 
     // Anisotropic diffusion
-    const int k = 16, iterate = 2;
+    const int k = 16, iterate = 1;
     anisotropicDiffusion(img_grey, img_grey, k, iterate);
 
     // Sobel Derivatives
@@ -41,7 +44,7 @@ int main(int argc, char** argv) {
 
     // Binarization
     Mat img_binary;
-    const double thresh = 12, max_val = 255;
+    const double thresh = 11, max_val = 255;
     threshold(img_grey, img_binary, thresh, max_val, THRESH_BINARY);
     img_binary.convertTo(img_binary, CV_8UC1);
 
@@ -64,15 +67,17 @@ int main(int argc, char** argv) {
 
     // Make the edges of raindrops more continuous
     close(img_binary, img_binary);
+    close(img_binary, img_binary);
 
     // Fill the holes inside the raindrops
     Mat img_temp = img_binary.clone();
     vector<vector<Point>> contours;
-    findContours(img_temp, contours, noArray(),
+    vector<Vec4i> hierarchy;
+    findContours(img_temp, contours, hierarchy,
                  CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
     for (size_t j = 0; j < contours.size(); j++) {
       drawContours(img_binary, contours, j, Scalar(255),
-                   CV_FILLED, 8, noArray(), 0);
+                   CV_FILLED, 8, hierarchy, INT_MAX);
     }
 
     // Remove some interference from raindrops
