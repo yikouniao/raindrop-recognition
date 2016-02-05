@@ -3,7 +3,7 @@ Recognize the raindrops in digital images and count the quantity.
 
 ### Process
 1. Read an image.
-2. Convert it into a grey image.
+2. Convert it into a gray image.
 3. Use anisotropic diffusion to erase noise.
 4. Calculate the sobel derivatives.
 5. Convert it into a binary image with a threshold.
