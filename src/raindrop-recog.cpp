@@ -56,7 +56,7 @@ void raindropRecognition(cv::Mat& img_original, cv::Mat& img_binary,
   Size text_size = getTextSize(text_sum, font_face,
                                font_scale, thickness, &baseline);
   Point text_sum_org((img_dst.cols - text_size.width) / 2,
-                     60 + text_size.height / 2);
+                     70 + text_size.height / 2);
   putText(img_dst, text_sum, text_sum_org, font_face, font_scale,
           Scalar(0, 0, 255), thickness, 8);
 }

@@ -25,10 +25,6 @@ int main(int argc, char** argv) {
   glob(images_dir, filenames); // Read a sequence of files within a folder
   for (size_t i = 0; i < filenames.size(); ++i) {
     Mat img_original = imread(filenames[i]);
-
-    // Tailor invalid area
-    img_original = img_original(Rect(0, 8, 690, img_original.rows - 8));
-
     namedWindow("Original image");
     imshow("Original image", img_original);
     Mat img_grey;
@@ -63,7 +59,7 @@ int main(int argc, char** argv) {
     clearImgEdgeInterference(img_binary, img_binary, ratio);
 
     // Clear the numbers and characters on the top left corner
-    img_binary(Rect(20, 12, 416, 32)) = Mat::zeros(32, 416, CV_8UC1);
+    img_binary(Rect(20, 20, 416, 32)) = Mat::zeros(32, 416, CV_8UC1);
 
     // Make the edges of raindrops more continuous
     close(img_binary, img_binary);
