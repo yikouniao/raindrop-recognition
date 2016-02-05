@@ -4,7 +4,6 @@ using namespace cv;
 
 void anisotropicDiffusion(cv::InputArray _src, cv::OutputArray _dst,
                           int k, int iterate) {
-  std::cout << "Anisotropic diffusion...\n";
   Mat src = _src.getMat();
   CV_Assert(src.depth() == CV_32F || src.depth() == CV_64F);
   _dst.create(src.size(), src.type());
