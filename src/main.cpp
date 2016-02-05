@@ -2,6 +2,7 @@
 #include "anisotropic.h"
 #include "sobel.h"
 #include "morphology.h"
+#include "raindrop-recog.h"
 #include <vector>
 #include <array>
 
@@ -21,56 +22,62 @@ int main(int argc, char** argv) {
   img_original = img_original(Rect(0, 8, 690, img_original.rows - 8));
   namedWindow("Original image");
   imshow("Original image", img_original);
-  Mat img;
-  cvtColor(img_original, img, CV_BGR2GRAY);
-  img.convertTo(img, CV_32FC1);
+  Mat img_grey;
+  cvtColor(img_original, img_grey, CV_BGR2GRAY);
+  img_grey.convertTo(img_grey, CV_32FC1);
 
   // Anisotropic diffusion
   const int k = 16, iterate = 2;
-  anisotropicDiffusion(img, img, k, iterate);
+  anisotropicDiffusion(img_grey, img_grey, k, iterate);
 
   // Sobel Derivatives
-  sobel(img, img);
+  sobel(img_grey, img_grey);
 
   // Binarization
+  Mat img_binary;
   const double thresh = 12, max_val = 255;
-  threshold(img, img, thresh, max_val, THRESH_BINARY);
-  img.convertTo(img, CV_8UC1);
+  threshold(img_grey, img_binary, thresh, max_val, THRESH_BINARY);
+  img_binary.convertTo(img_binary, CV_8UC1);
 
   // Seperate interference from raindrops and weaken it
-  open(img, img);
+  open(img_binary, img_binary);
 
   // Remove some interference from raindrops
   const int minArea = 10;
-  removeSmallConnectedComponents(img, img, minArea);
+  removeSmallConnectedComponents(img_binary, img_binary, minArea);
 
   // Make the edges of raindrops more continuous
-  close(img, img);
+  close(img_binary, img_binary);
 
   // Remove the long straight edges interference of the image
   const double ratio = 0.75;
-  clearImgEdgeInterference(img, img, ratio);
+  clearImgEdgeInterference(img_binary, img_binary, ratio);
 
   // Clear the numbers and characters on the top left corner
-  img(Rect(20, 12, 416, 32)) = Mat::zeros(32, 416, CV_8UC1);
+  img_binary(Rect(20, 12, 416, 32)) = Mat::zeros(32, 416, CV_8UC1);
 
   // Make the edges of raindrops more continuous
-  close(img, img);
+  close(img_binary, img_binary);
 
   // Fill the holes inside the raindrops
-  Mat img_temp = img.clone();
+  Mat img_temp = img_binary.clone();
   vector<vector<Point>> contours;
   findContours(img_temp, contours, noArray(),
                CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
   for (size_t i = 0; i < contours.size(); i++) {
-    drawContours(img, contours, i, Scalar(255), CV_FILLED, 8, noArray(), 0);
+    drawContours(img_binary, contours, i, Scalar(255),
+                 CV_FILLED, 8, noArray(), 0);
   }
 
   // Remove some interference from raindrops
-  removeSmallConnectedComponents(img, img, minArea);
+  removeSmallConnectedComponents(img_binary, img_binary, minArea);
 
-  namedWindow("dst");
-  imshow("dst", img);
+  // Raindrops recognition
+  Mat img_dst;
+  raindropRecognition(img_original, img_binary, img_dst);
+
+  namedWindow("Result");
+  imshow("Result", img_dst);
   waitKey(0);
   return 0;
 }
