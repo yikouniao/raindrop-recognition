@@ -20,7 +20,8 @@ int findConnectedComponent(const cv::Mat& src, cv::Mat& labels) {
           labels.at<int>(i, j) = min_neighbor_label;
           for (int k = 0; k < neighbors.size(); ++k) {
             if (!neighbors[k]) {
-              linked[neighbors[k]].push_back(min_neighbor_label);
+              // union(linked[neighbors[k]], neighbors)
+              
             }
           }
         }
@@ -37,7 +38,7 @@ int findConnectedComponent(const cv::Mat& src, cv::Mat& labels) {
 // Find neighbors of a label, and return the minimum label
 // If return 0, it means the neighbors is empty
 static int findLabelNeighbors(const cv::Mat& labels, int i, int j,
-  std::vector<int>& neighbors) {
+                              std::vector<int>& neighbors) {
   CV_Assert(i >= 0 && i < labels.rows && j >= 0 && j < labels.cols);
   if (j != 0)
     neighbors.push_back(labels.at<int>(i, j - 1));
@@ -57,21 +58,26 @@ static int findLabelNeighbors(const cv::Mat& labels, int i, int j,
     if (j != labels.cols - 1)
       neighbors.push_back(labels.at<int>(i + 1, j + 1));
   }
-  return getMinInVector(neighbors);
-}
 
-static int getMinInVector(const std::vector<int>& v) {
-  CV_Assert(!v.empty());
-  int min = v[0];
-  for (int i = 0; i < v.size(); ++i) {
-    if (v[i] < min) {
-      min = v[i];
-    }
+  // Erase redundant elements
+  sort(neighbors.begin(), neighbors.end());
+  auto last = unique(neighbors.begin(), neighbors.end());
+  neighbors.erase(last, neighbors.end());
+
+  // Erase zero elements(background label)
+  // After sorting, only the first element can be 0
+  if (!neighbors[0]) {
+    neighbors.erase(neighbors.begin());
   }
-  return min;
+
+  if (neighbors.empty()) {
+    return 0;
+  }
+  return neighbors[0];
 }
 
-// modify into general function
-vector<int>& vector<int>::operator+=(const vector<int>& a) {
+// union(linked, neighbors), linked += neighbors
+static void unionLinkedNeighbors(std::vector<int>& linked,
+                                 const std::vector<int>& neighbors) {
 
 }
