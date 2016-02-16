@@ -1,5 +1,4 @@
 #include "connected-component.h"
-#include <vector>
 
 using namespace cv;
 using namespace std;
@@ -7,7 +6,7 @@ using namespace std;
 int findConnectedComponent(const cv::Mat& src, cv::Mat& labels) {
   // Two pass
   labels = Mat(src.rows, src.cols, CV_32SC1, Scalar(0));
-  vector<vector<int>> linked;
+  vector<vector<int>> linkeds;
   int next_label = 1;
 
   // First pass
@@ -18,21 +17,34 @@ int findConnectedComponent(const cv::Mat& src, cv::Mat& labels) {
         int min_neighbor_label = findLabelNeighbors(labels, i, j, neighbors);
         if (min_neighbor_label) { // If neighbors is not empty
           labels.at<int>(i, j) = min_neighbor_label;
-          for (int k = 0; k < neighbors.size(); ++k) {
-            if (!neighbors[k]) {
-              // union(linked[neighbors[k]], neighbors)
-              
-            }
+          for (size_t k = 0; k < neighbors.size(); ++k) {
+            unionLinkedNeighbors(linkeds[neighbors[k]], neighbors);
           }
-        }
-        else { // If neighbors is empty
-          linked[next_label].push_back(next_label);
+        } else {                  // If neighbors is empty
+          linkeds[next_label].push_back(next_label);
           labels.at<int>(i, j) = next_label;
           ++next_label;
         }
       }
     }
   }
+
+  // Get converted
+  vector<int> converted(linkeds.size(), 0);
+  int nLabels = getconverted(linkeds, converted);
+
+  // Second pass
+  for (int i = 0; i < labels.rows; ++i) {
+    for (int j = 0; j < labels.cols; ++j) {
+      if (labels.at<int>(i, j)) {
+        labels.at<int>(i, j) = converted[labels.at<int>(i, j)];
+      }
+    }
+  }
+
+  // get number area...
+
+  return nLabels;
 }
 
 // Find neighbors of a label, and return the minimum label
@@ -79,5 +91,55 @@ static int findLabelNeighbors(const cv::Mat& labels, int i, int j,
 // union(linked, neighbors), linked += neighbors
 static void unionLinkedNeighbors(std::vector<int>& linked,
                                  const std::vector<int>& neighbors) {
+  for (size_t i = 0; i < neighbors.size(); ++i) {
+    linked.push_back(neighbors[i]);
+  }
+  sort(linked.begin(), linked.end());
+  auto last = unique(linked.begin(), linked.end());
+  linked.erase(last, linked.end());
+}
 
+// return the number of labels
+static int getconverted(const std::vector<std::vector<int>>& linkeds,
+                        std::vector<int>& converted) {
+  CV_Assert(converted.size() == linkeds.size());
+  vector<set<int>> labelSets;
+
+  // Start form i = 1 because i = 0 responds to background label
+  for (size_t i = 1; i < converted.size(); ++i) {
+    if (!converted[i]) {
+      set<int> labelSet;
+      getlabelSet(linkeds, i, labelSet);
+      labelSets.push_back(labelSet);
+      for (const auto& e : labelSet) {
+        // The first element in the set will be the smallest one
+        converted[e] = *labelSet.begin();
+      }
+    }
+  }
+
+  // Modify labels into 1, 2, 3...
+  // There must be a label 1 in converted, so begin from label 2
+  for (size_t i = 2; i < labelSets.size(); ++i) {
+    size_t j = i;
+    while (find(converted.begin(), converted.end(), j++) == converted.end()) {}
+    --j;
+    if (i != j) {
+      for (auto& e : converted) {
+        e = (e == j) ? i : e;
+      }
+    }
+  }
+
+  return labelSets.size();
+}
+
+static void getlabelSet(const std::vector<std::vector<int>>& linkeds,
+                        int labelRoot, std::set<int>& labelSet) {
+  for (size_t i = 0; i < linkeds[labelRoot].size(); ++i) {
+    auto insert_result = labelSet.insert(linkeds[labelRoot][i]);
+    if (insert_result.second) {
+      getlabelSet(linkeds, linkeds[labelRoot][i], labelSet);
+    }
+  }
 }
