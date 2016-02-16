@@ -3,7 +3,18 @@
 using namespace cv;
 using namespace std;
 
-int findConnectedComponent(const cv::Mat& src, cv::Mat& labels) {
+// The function realizes almost the same things
+// as cv::connectedComponentsWithStats besides the choices
+// of connectivity and ltype.
+// return: the number of labels
+// stats: statistics output for each label, including the background label.
+//   Statistics are accessed via stats(label, COLUMN) where COLUMN is one of
+//   cv::ConnectedComponentsTypes. The data type is CV_32S(int).
+// centroids: centroid output for each label, including the background label.
+//   Centroids are accessed via centroids(label, 0) for x
+//   and centroids(label, 1) for y.The data type CV_64F(double).
+int findConnectedComponent(const cv::Mat& src, cv::Mat& labels,
+                           cv::Mat_<int>& stats, cv::Mat_<double> centroids) {
   // Two pass
   labels = Mat(src.rows, src.cols, CV_32SC1, Scalar(0));
   vector<vector<int>> linkeds;
@@ -99,7 +110,7 @@ static void unionLinkedNeighbors(std::vector<int>& linked,
   linked.erase(last, linked.end());
 }
 
-// return the number of labels
+// return: the number of labels
 static int getconverted(const std::vector<std::vector<int>>& linkeds,
                         std::vector<int>& converted) {
   CV_Assert(converted.size() == linkeds.size());
