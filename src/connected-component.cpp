@@ -15,7 +15,7 @@ using namespace std;
 //   Centroids are accessed via centroids(label, 0) for x
 //   and centroids(label, 1) for y.The data type CV_64F(double).
 int findConnectedComponent(const cv::Mat& src, cv::Mat& labels,
-                           cv::Mat_<int>& stats, cv::Mat_<double> centroids) {
+                           cv::Mat_<int>& stats, cv::Mat_<double>& centroids) {
   // Two pass
   labels = Mat(src.rows, src.cols, CV_32SC1, Scalar(0));
   Mat_<int>& labels_ = (Mat_<int>&)labels;
@@ -89,8 +89,8 @@ int findConnectedComponent(const cv::Mat& src, cv::Mat& labels,
       stats(labels_(i, j), AREA) = (stats(labels_(i, j), AREA) < 0) ?
                                    1 : stats(labels_(i, j), AREA) + 1;
       // centroids, add all x and y
-      centroids(labels_(i, j), 0) += i;
-      centroids(labels_(i, j), 1) += j;
+      centroids(labels_(i, j), 0) += j;
+      centroids(labels_(i, j), 1) += i;
     }
   }
   // get centroids

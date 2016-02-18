@@ -4,7 +4,7 @@
 #include <set>
 
 int findConnectedComponent(const cv::Mat& src, cv::Mat& labels,
-                           cv::Mat_<int>& stats, cv::Mat_<double> centroids);
+                           cv::Mat_<int>& stats, cv::Mat_<double>& centroids);
 static int findLabelNeighbors(const cv::Mat& labels, int i, int j,
                               std::vector<int>& neighbors);
 static void unionLinkedNeighbors(std::vector<int>& linked,
