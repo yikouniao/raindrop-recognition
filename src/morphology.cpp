@@ -1,4 +1,5 @@
 #include "morphology.h"
+#include "connected-component.h"
 
 using namespace cv;
 
@@ -26,8 +27,9 @@ void removeSmallConnectedComponents(const cv::Mat& src, cv::Mat& _dst,
   CV_Assert(src.depth() == CV_8UC1);
   Mat_<int> labels, stats;
   Mat_<double> centroids;
-  int nLabels = connectedComponentsWithStats(src, labels, stats,
-                                             centroids, 8, CV_32S);
+  //int nLabels = connectedComponentsWithStats(src, labels, stats,
+  //                                           centroids, 8, CV_32S);
+  int nLabels = findConnectedComponent(src, labels, stats, centroids);
   Mat_<uchar>& dst = (Mat_<uchar>&)_dst;
   for (int i = 1; i < nLabels; ++i) {
     if (stats(i, CC_STAT_AREA) < minArea) {

@@ -6,7 +6,8 @@ using namespace std;
 // The function realizes almost the same things
 // as cv::connectedComponentsWithStats besides the choices
 // of connectivity and ltype.
-// return: the number of labels
+// Use 8-way connectivity and type CV_32S for labels.
+// return: the number of labels including background
 // stats: statistics output for each label, including the background label.
 //   Statistics are accessed via stats(label, COLUMN) where COLUMN is one of
 //   cv::ConnectedComponentsTypes. The data type is CV_32S(int).
@@ -17,6 +18,7 @@ int findConnectedComponent(const cv::Mat& src, cv::Mat& labels,
                            cv::Mat_<int>& stats, cv::Mat_<double> centroids) {
   // Two pass
   labels = Mat(src.rows, src.cols, CV_32SC1, Scalar(0));
+  Mat_<int>& labels_ = (Mat_<int>&)labels;
   vector<vector<int>> linkeds;
   int next_label = 1;
 
@@ -27,13 +29,13 @@ int findConnectedComponent(const cv::Mat& src, cv::Mat& labels,
         vector<int> neighbors;
         int min_neighbor_label = findLabelNeighbors(labels, i, j, neighbors);
         if (min_neighbor_label) { // If neighbors is not empty
-          labels.at<int>(i, j) = min_neighbor_label;
+          labels_(i, j) = min_neighbor_label;
           for (size_t k = 0; k < neighbors.size(); ++k) {
             unionLinkedNeighbors(linkeds[neighbors[k]], neighbors);
           }
         } else {                  // If neighbors is empty
           linkeds[next_label].push_back(next_label);
-          labels.at<int>(i, j) = next_label;
+          labels_(i, j) = next_label;
           ++next_label;
         }
       }
@@ -47,14 +49,54 @@ int findConnectedComponent(const cv::Mat& src, cv::Mat& labels,
   // Second pass
   for (int i = 0; i < labels.rows; ++i) {
     for (int j = 0; j < labels.cols; ++j) {
-      if (labels.at<int>(i, j)) {
-        labels.at<int>(i, j) = converted[labels.at<int>(i, j)];
+      if (labels_(i, j)) {
+        labels_(i, j) = converted[labels_(i, j)];
       }
     }
   }
 
-  // get number area...
+  // Get number, status, centroids...
+#define CC_STAT_DEFAULT
+#ifdef CC_STAT_DEFAULT
 
+#define LEFT CC_STAT_LEFT
+#define TOP CC_STAT_TOP
+#define WIDTH CC_STAT_WIDTH
+#define HEIGHT CC_STAT_HEIGHT
+#define AREA CC_STAT_AREA
+
+  stats = Mat_<int>(nLabels, CC_STAT_MAX, -1);
+  centroids = Mat_<double>(nLabels, 2, 0.);
+  for (int i = 0; i < labels.rows; ++i) {
+    for (int j = 0; j < labels.cols; ++j) {
+      // CC_STAT_LEFT
+      if (stats(labels_(i, j), LEFT) < 0 || stats(labels_(i, j), LEFT) > i)
+        stats(labels_(i, j), LEFT) = i;
+      // CC_STAT_TOP
+      if (stats(labels_(i, j), TOP) < 0 || stats(labels_(i, j), TOP) > j)
+        stats(labels_(i, j), TOP) = j;
+      // CC_STAT_WIDTH
+      if (stats(labels_(i, j), WIDTH) < 0 ||
+          stats(labels_(i, j), WIDTH) + stats(labels_(i, j), LEFT) <= i)
+        stats(labels_(i, j), WIDTH) = i - stats(labels_(i, j), LEFT) + 1;
+      // CC_STAT_HEIGHT
+      if (stats(labels_(i, j), HEIGHT) < 0 ||
+          stats(labels_(i, j), HEIGHT) + stats(labels_(i, j), TOP) <= j)
+        stats(labels_(i, j), HEIGHT) = j - stats(labels_(i, j), TOP) + 1;
+      // CC_STAT_AREA
+      stats(labels_(i, j), AREA) = (stats(labels_(i, j), AREA) < 0) ?
+                                   1 : stats(labels_(i, j), AREA) + 1;
+      // centroids, add all x and y
+      centroids(labels_(i, j), 0) += i;
+      centroids(labels_(i, j), 1) += j;
+    }
+  }
+  // get centroids
+  for (int i = 0; i < nLabels; ++i) {
+    centroids(i, 0) /= stats(i, AREA);
+    centroids(i, 1) /= stats(i, AREA);
+  }
+#endif
   return nLabels;
 }
 
@@ -110,7 +152,7 @@ static void unionLinkedNeighbors(std::vector<int>& linked,
   linked.erase(last, linked.end());
 }
 
-// return: the number of labels
+// return: the number of labels including background
 static int getconverted(const std::vector<std::vector<int>>& linkeds,
                         std::vector<int>& converted) {
   CV_Assert(converted.size() == linkeds.size());
@@ -131,7 +173,7 @@ static int getconverted(const std::vector<std::vector<int>>& linkeds,
 
   // Modify labels into 1, 2, 3...
   // There must be a label 1 in converted, so begin from label 2
-  for (size_t i = 2; i < labelSets.size(); ++i) {
+  for (size_t i = 2; i < labelSets.size() + 1; ++i) {
     size_t j = i;
     while (find(converted.begin(), converted.end(), j++) == converted.end()) {}
     --j;
@@ -142,7 +184,7 @@ static int getconverted(const std::vector<std::vector<int>>& linkeds,
     }
   }
 
-  return labelSets.size();
+  return labelSets.size() + 1;
 }
 
 static void getlabelSet(const std::vector<std::vector<int>>& linkeds,
