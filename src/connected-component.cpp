@@ -34,6 +34,8 @@ int findConnectedComponent(const cv::Mat& src, cv::Mat& labels,
             unionLinkedNeighbors(linkeds[neighbors[k]], neighbors);
           }
         } else {                  // If neighbors is empty
+          if (static_cast<int>(linkeds.size()) < next_label + 1)
+            linkeds.resize(next_label + 1);
           linkeds[next_label].push_back(next_label);
           labels_(i, j) = next_label;
           ++next_label;
